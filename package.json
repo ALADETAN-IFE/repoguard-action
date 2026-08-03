@@ -1,0 +1,23 @@
+{
+  "name": "repoguard-action",
+  "version": "1.0.0",
+  "description": "GitHub Action for RepoGuard security scanner",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsup",
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "@repoguard/scanner": "^1.0.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "tsup": "^8.3.5"
+  }
+}

@@ -1,0 +1,37 @@
+name: "RepoGuard Security Scan"
+description: "Automated security scanner detecting malicious code, secrets, and supply chain threats in your repository."
+author: "ALADETAN-IFE"
+
+branding:
+  icon: "shield"
+  color: "blue"
+
+inputs:
+  github-token:
+    description: "GitHub token for reporting check annotations"
+    required: false
+    default: "${{ github.token }}"
+  minimum-severity:
+    description: "Minimum severity to report (critical, high, medium, low)"
+    required: false
+    default: "medium"
+  fail-on:
+    description: "Minimum severity that causes the workflow step to fail"
+    required: false
+    default: "high"
+  config-path:
+    description: "Path to repoguard.yml configuration file relative to repository root"
+    required: false
+    default: "repoguard.yml"
+
+outputs:
+  findings-count:
+    description: "Total number of security findings detected"
+  critical-count:
+    description: "Number of critical severity findings"
+  high-count:
+    description: "Number of high severity findings"
+
+runs:
+  using: "node24"
+  main: "dist/index.js"

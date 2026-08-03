@@ -1,0 +1,22 @@
+name: "RepoGuard Security Scan"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Run RepoGuard
+        uses: ALADETAN-IFE/repoguard-action@v1
+        with:
+          minimum-severity: "medium"
+          fail-on: "high"
