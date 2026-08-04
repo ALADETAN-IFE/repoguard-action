@@ -4,7 +4,7 @@
   "description": "GitHub Action for RepoGuard security scanner",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsup",
+    "build": "node api.js && tsup",
     "test": "jest",
     "typecheck": "tsc --noEmit"
   },
