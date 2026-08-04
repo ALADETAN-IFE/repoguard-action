@@ -23601,7 +23601,7 @@ async function run() {
   try {
     const minimumSeverityInput = core2.getInput("minimum-severity") || "medium";
     const failOnInput = core2.getInput("fail-on") || "high";
-    const configPathInput = core2.getInput("config-path") || "repoguard.yml";
+    const configPathInput = core2.getInput("config-path") || ".repoguard.yml";
     const workspacePath = process.env.GITHUB_WORKSPACE || process.cwd();
     core2.info(`\u{1F50D} RepoGuard Action scanning workspace: ${workspacePath}`);
     const fullConfigPath = path.join(workspacePath, configPathInput);
@@ -23612,7 +23612,7 @@ async function run() {
       repoConfig = parseRepoConfig(yamlContent);
     } else {
       core2.info(
-        `\u2139\uFE0F No ${configPathInput} found \u2014 using default scanner settings`
+        `\u2139\uFE0F No ${configPathInput} found in repository root \u2014 using default settings`
       );
     }
     const findings = [];
@@ -23639,6 +23639,10 @@ async function run() {
 \u{1F4CA} RepoGuard Scan Results: ${totalCount} finding(s) detected (${criticalCount} critical, ${highCount} high, ${mediumCount} medium, ${lowCount} low)`
     );
     for (const finding of filteredFindings) {
+      const lineStr = finding.line ? `:${finding.line}` : "";
+      const fileStr = finding.file ? `${finding.file}${lineStr}` : "unknown file";
+      const consoleMsg = `  \u21B3 [${finding.severity.toUpperCase()}] ${fileStr} - ${finding.message} (Rule: ${finding.rule})`;
+      core2.info(consoleMsg);
       const annotationOptions = {
         title: `RepoGuard [${finding.rule}] (${finding.severity.toUpperCase()})`,
         file: finding.file ?? void 0,

@@ -20,9 +20,9 @@ inputs:
     required: false
     default: "high"
   config-path:
-    description: "Path to repoguard.yml configuration file relative to repository root"
+    description: "Path to .repoguard.yml configuration file relative to repository root"
     required: false
-    default: "repoguard.yml"
+    default: ".repoguard.yml"
 
 outputs:
   findings-count:

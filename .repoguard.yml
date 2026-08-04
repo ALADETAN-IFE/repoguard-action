@@ -1,0 +1,5 @@
+rules:
+  workflow-unpinned-action: off
+
+severity:
+  minimum: medium
