@@ -3,7 +3,7 @@
 Automated security scanner for GitHub Actions workflows. Detects remote code execution vectors, obfuscated malware, hardcoded secrets, supply chain threats, and more — running directly in your CI pipeline with no external server required.
 
 > **Want the full experience?**
-> The [**RepoGuard GitHub App**](https://github.com/apps/repoguard-ifecodes) gives you everything this Action does, _plus_ automated Fix PRs, inline PR review suggestions, Slack alerts, MongoDB-backed scan history, and the `/fix` issue comment command. Install it once and it protects every repo you add — no workflow files required.
+> The [**RepoGuard GitHub App**](https://github.com/marketplace/repoguard-ifecodes) gives you everything this Action does, _plus_ automated Fix PRs, inline PR review suggestions, Slack alerts, MongoDB-backed scan history, and the `/fix` issue comment command. Install it once and it protects every repo you add — no workflow files required.
 
 ---
 
