@@ -87,8 +87,8 @@ To customize scanner behavior, add a `.repoguard.yml` file to the **root (base d
 ```yaml
 # .repoguard.yml
 rules:
-  workflow-unpinned-action: off    # Disable unpinned action warnings
-  hardcoded-secret: warn           # Downgrade to medium severity
+  workflow-unpinned-action: off # Disable unpinned action warnings
+  hardcoded-secret: warn # Downgrade to medium severity
 
 ignore:
   paths:
@@ -97,16 +97,16 @@ ignore:
     - courses/
 
 severity:
-  minimum: high                    # Only report high and critical
+  minimum: high # Only report high and critical
 
 whitelist:
   patterns:
-    - "sk-test-*"                  # Ignore test API keys
-    - "EXAMPLE_*"                  # Ignore documentation placeholders
-
-notifications:
-  slack: "https://hooks.slack.com/services/xxx/yyy/zzz"
+    - "sk-test-*" # Ignore test API keys
+    - "EXAMPLE_*" # Ignore documentation placeholders
 ```
+
+<!-- notifications:
+  slack: "https://hooks.slack.com/services/xxx/yyy/zzz" -->
 
 > ⚠️ **Security note:** Critical malware & RCE rules (`curl-pipe-bash`, `reverse-shell`, `obfuscated-base64`, etc.) **cannot be disabled** via `.repoguard.yml`, even if you set them to `off`. This protects against attackers committing a config that hides their malware. These rules will always fire.
 
@@ -114,20 +114,18 @@ notifications:
 
 ## Action vs GitHub App
 
-| Feature                   | RepoGuard Action      | RepoGuard GitHub App |
-| ------------------------- | --------------------- | -------------------- |
-| Setup                     | Add a workflow file   | One-click install    |
-| Runs on                   | GitHub's free runners | Your Render server   |
-| Detects malware & secrets | ✅                    | ✅                   |
-| `repoguard.yml` support   | ✅                    | ✅                   |
-| Inline PR suggestions     | ❌                    | ✅                   |
-| Automated Fix PRs         | ❌                    | ✅                   |
-| `/fix` issue command      | ❌                    | ✅                   |
-| Scan history              | ❌                    | ✅                   |
-| Cost                      | Free                  | Server hosting cost  |
-<!-- | Slack alerts              | ❌                    | ✅                   | -->
+| Feature                   | RepoGuard Action    | RepoGuard GitHub App |
+| ------------------------- | ------------------- | -------------------- | --- | --- |
+| Setup                     | Add a workflow file | One-click install    |
+| Detects malware & secrets | ✅                  | ✅                   |
+| `repoguard.yml` support   | ✅                  | ✅                   |
+| Inline PR suggestions     | ❌                  | ✅                   |
+| Automated Fix PRs         | ❌                  | ✅                   |
+| `/fix` issue command      | ❌                  | ✅                   |
+| Scan history              | ❌                  | ✅                   |
+| <!--                      | Slack alerts        | ❌                   | ✅  | --> |
 
-**Install the app →** [github.com/apps/repoguard-ifecodes](https://github.com/apps/repoguard-ifecodes)
+**Install the app →** [REPOGUARD-IFECODES](https://github.com/marketplace/repoguard-ifecodes)
 
 ---
 
