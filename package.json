@@ -4,7 +4,7 @@
   "description": "GitHub Action for RepoGuard security scanner",
   "main": "dist/index.js",
   "scripts": {
-    "build": "node api.js && tsup",
+    "build": "node init && tsup",
     "test": "jest",
     "typecheck": "tsc --noEmit"
   },
@@ -12,7 +12,9 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
     "@repoguard/scanner": "^1.0.0",
-    "js-yaml": "^4.1.0"
+    "dotenv": "^8.2.0",
+    "js-yaml": "^4.1.0",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
