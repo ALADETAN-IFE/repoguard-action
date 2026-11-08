@@ -30,14 +30,14 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run RepoGuard
-        uses: ALADETAN-IFE/repoguard-action@1f0c45f68e3b43f3d4fa14029868574cac0a08ad # v1
+        uses: ALADETAN-IFE/repoguard-action@cc10d86fc9bae100f3f722ec7420946e61aeffc9 # v1
         with:
           minimum-severity: "medium"
           fail-on: "high"
 ```
 
 > 🔒 **Security Best Practice (Commit SHA Pinning):**
-> Pinning the action to a full 40-character commit SHA (`@1f0c45f... # v1`) is GitHub's recommended security standard and satisfies RepoGuard's `workflow-unpinned-action` rule. This ensures your workflow is immune to supply chain tag-hijacking. While `@v1` is also supported, pinning to the commit SHA is strongly recommended for production environments.
+> Pinning the action to a full 40-character commit SHA (`@cc10d86... # v1`) is GitHub's recommended security standard and satisfies RepoGuard's `workflow-unpinned-action` rule. This ensures your workflow is immune to supply chain tag-hijacking. While `@v1` is also supported, pinning to the commit SHA is strongly recommended for production environments.
 
 > `github-token` defaults to `${{ github.token }}` automatically — you don't need to pass it unless you want to use a custom token.
 
