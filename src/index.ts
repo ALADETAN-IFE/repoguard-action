@@ -20,14 +20,64 @@ const SEVERITY_ORDER: Record<Severity, number> = {
   low: 1,
 };
 
+const ACTION_OWNER = "ALADETAN-IFE";
+const ACTION_REPO = "repoguard-action";
+const ACTION_TRACKING_REF = "v1";
+
+async function checkForActionUpdates(token?: string): Promise<void> {
+  if (!token) return;
+
+  try {
+    const octokit = github.getOctokit(token);
+    const { data: commitData } = await octokit.rest.repos.getCommit({
+      owner: ACTION_OWNER,
+      repo: ACTION_REPO,
+      ref: ACTION_TRACKING_REF,
+    });
+
+    const latestSha = commitData.sha;
+    if (!latestSha) return;
+
+    // GITHUB_ACTION_REF contains the ref or commit SHA that the runner downloaded for this step
+    const currentRef = process.env.GITHUB_ACTION_REF?.trim();
+
+    if (currentRef) {
+      const isHexSha = /^[0-9a-f]{40}$/i.test(currentRef);
+
+      if (isHexSha && currentRef.toLowerCase() !== latestSha.toLowerCase()) {
+        core.notice(
+          `A newer version of RepoGuard Action is available!\n` +
+            `Current commit: ${currentRef.slice(0, 7)}\n` +
+            `Latest commit:  ${latestSha.slice(0, 7)}\n\n` +
+            `Update your workflow to:\n` +
+            `uses: ${ACTION_OWNER}/${ACTION_REPO}@${latestSha} # ${ACTION_TRACKING_REF}`,
+          { title: "RepoGuard Action Update Available" },
+        );
+      } else if (currentRef === ACTION_TRACKING_REF) {
+        core.info(
+          `💡 Tip: Pin RepoGuard Action to an immutable commit SHA (uses: ${ACTION_OWNER}/${ACTION_REPO}@${latestSha} # ${ACTION_TRACKING_REF}) for supply-chain security.`,
+        );
+      }
+    }
+  } catch (err) {
+    // Non-blocking: fail silently if rate-limited, offline, or token lacks permissions
+    core.debug(`Failed to check for action updates: ${err}`);
+  }
+}
+
 async function run(): Promise<void> {
   try {
     const minimumSeverityInput = core.getInput("minimum-severity") || "medium";
     const failOnInput = core.getInput("fail-on") || "high";
     const configPathInput = core.getInput("config-path") || ".repoguard.yml";
+    const githubToken =
+      core.getInput("github-token") || process.env.GITHUB_TOKEN;
 
     const workspacePath = process.env.GITHUB_WORKSPACE || process.cwd();
     core.info(`🔍 RepoGuard Action scanning workspace: ${workspacePath}`);
+
+    // Check for action updates in the background during workspace scan
+    const updateCheckPromise = checkForActionUpdates(githubToken);
 
     // 1. Load .repoguard.yml config if present
     const fullConfigPath = path.join(workspacePath, configPathInput);
@@ -98,6 +148,9 @@ async function run(): Promise<void> {
     core.setOutput("findings-count", totalCount);
     core.setOutput("critical-count", criticalCount);
     core.setOutput("high-count", highCount);
+
+    // Wait for update check to complete (non-blocking, won't throw)
+    await updateCheckPromise;
 
     // 6. Fail workflow if findings exceed fail-on threshold
     const failLevel = SEVERITY_ORDER[failOnInput as Severity] ?? 3;
