@@ -23017,10 +23017,12 @@ var KNOWN_MALWARE_ARTIFACTS = /* @__PURE__ */ new Set([
   "branch_structure.json",
   "temp_auto_push.bat",
   "temp_interactive_push.bat",
+  "config.bat",
   "setup_bun.js",
   "bun_environment.js",
   "cloud.json",
-  "environment.json"
+  "environment.json",
+  ".gitignore"
 ]);
 var MALWARE_ARTIFACT_PATTERNS = [
   /^temp_.*_push\.bat$/i,
@@ -23256,8 +23258,12 @@ var FILE_RULES = [
   {
     id: "obfuscated-malware-pattern",
     severity: "critical",
-    description: "Suspicious obfuscated string array pattern or global require assignment",
-    test: (content) => /var\s+_\$_\w+\s*=\s*\(?function/.test(content) || /global\[['"]!['"]\]/.test(content) || /global\[_\$_\w+\[\d+\]\]\s*=\s*require/.test(content)
+    description: "Suspicious obfuscated string array pattern, rotation loop, or global require assignment",
+    test: (content) => /var\s+_\$_\w+\s*=\s*\(?function/.test(content) || /global\[['"]!['"]\]/.test(content) || /global\.(i|r|m)\s*=|global\[['"](i|r|m)['"]\]/.test(content) || /global\[_\$_\w+\[\d+\]\]\s*=\s*require/.test(content) || /function\s+[a-zA-Z0-9_$]+\s*\(\s*\)\s*\{\s*(?:var|let|const)\s+[a-zA-Z0-9_$]+\s*=\s*\[[\s\S]*?\];[\s\S]*?return\s+[a-zA-Z0-9_$]+/s.test(
+      content
+    ) && /\(function\s*\([a-zA-Z0-9_$,\s]*\)\s*\{[\s\S]*?(?:push|shift)[\s\S]*?\}\s*\(|\(function\s*\([a-zA-Z0-9_$,\s]*\)\s*\{[\s\S]*?(?:push|shift)[\s\S]*?\}\)\s*\(/s.test(
+      content
+    )
   },
   {
     id: "python-exec-compile",
@@ -23280,9 +23286,9 @@ var FILE_RULES = [
   {
     id: "js-obfuscated-hex",
     severity: "critical",
-    description: "JavaScript hex escape obfuscation sequence",
+    description: "JavaScript hex/unicode escape obfuscation sequence",
     test: (content) => {
-      const matches = content.match(/\\x[0-9a-fA-F]{2}/g);
+      const matches = content.match(/\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})/g);
       return matches !== null && matches.length >= 8;
     }
   },
@@ -23324,6 +23330,31 @@ var FILE_RULES = [
       );
       const urlConcat = /['"`]\s*\+\s*process\.env\.(PASSWORD|SECRET|TOKEN|KEY|API)/i.test(content);
       return directExfil || bodyExfil || urlConcat;
+    }
+  },
+  {
+    id: "suspicious-npm-script-hijack",
+    severity: "critical",
+    description: "package.json script hijacked to execute arbitrary JS file or chained payload",
+    test: (content, filePath) => {
+      if (!filePath?.endsWith("package.json")) return false;
+      try {
+        const pkg = JSON.parse(content);
+        if (!pkg.scripts) return false;
+        return Object.values(pkg.scripts).some((script) => {
+          if (typeof script !== "string") return false;
+          if (/\bnode\s+[\w./\\-]+\.js\s*(&&|;|\|\|)\s*/i.test(script)) return true;
+          if (/\bnode\s+(?:\.\/)?[\w-]+\.js\b/i.test(script) && !/\b(?:scripts|bin|dist|tools|build|test|tests)\//i.test(script)) {
+            return true;
+          }
+          if (/\b(?:curl|wget|powershell|bash\s+-c|sh\s+-c)\b/i.test(script) || /\bnode\s+-e\b/i.test(script)) {
+            return true;
+          }
+          return false;
+        });
+      } catch {
+        return false;
+      }
     }
   },
   {
@@ -23394,6 +23425,7 @@ var FILE_RULES = [
       while ((match = stringRegex.exec(content)) !== null) {
         const value = match[2];
         if (/^https?:\/\//i.test(value) || /^[0-9]+$/.test(value)) continue;
+        if (/^[0-9a-f]{40}$/i.test(value)) continue;
         const entropy = calculateEntropy(value);
         if (entropy >= 4.3) {
           return true;
@@ -23534,7 +23566,13 @@ var WORKFLOW_RULES = [
     id: "workflow-exfiltrate-secrets",
     severity: "critical",
     description: "Workflow may be exfiltrating GitHub secrets externally",
-    test: (content) => /\$\{\{\s*secrets\.\w+\s*\}\}/.test(content) && /curl|wget|http/.test(content)
+    test: (content) => {
+      if (!/\$\{\{\s*secrets\.\w+\s*\}\}/.test(content)) return false;
+      if (!/curl|wget/.test(content)) return false;
+      return /(?:curl|wget)\b[^\n]*https?:\/\/[^\n]*\$\{\{\s*secrets\.\w+\s*\}\}|(?:curl|wget)\b[^\n]*\$\{\{\s*secrets\.\w+\s*\}\}[^\n]*https?:\/\//.test(
+        content
+      );
+    }
   },
   {
     id: "workflow-pull-request-target-checkout",
