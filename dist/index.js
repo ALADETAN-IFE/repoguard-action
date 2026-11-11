@@ -27378,11 +27378,32 @@ var FILE_RULES = [
     id: "obfuscated-malware-pattern",
     severity: "critical",
     description: "Suspicious obfuscated string array pattern, rotation loop, or global require assignment",
-    test: (content) => /var\s+_\$_\w+\s*=\s*\(?function/.test(content) || /global\[['"]!['"]\]/.test(content) || /global\.(i|r|m)\s*=|global\[['"](i|r|m)['"]\]/.test(content) || /global\[_\$_\w+\[\d+\]\]\s*=\s*require/.test(content) || /function\s+[a-zA-Z0-9_$]+\s*\(\s*\)\s*\{\s*(?:var|let|const)\s+[a-zA-Z0-9_$]+\s*=\s*\[[\s\S]*?\];[\s\S]*?return\s+[a-zA-Z0-9_$]+/s.test(
+    test: (content) => /var\s+_\$_\w+\s*=\s*\(?function/.test(content) || /global\[['"]!['"]\]/.test(content) || /global\.(i|r|m)\s*=|global\[['"](i|r|m)['"]\]/.test(content) || /global\[_\$_\w+\[\d+\]\]\s*=\s*require/.test(content) || /\bfunction\s+(?:spin|splitLane|peel|y7)\b/.test(content) || /(?:\bNX\s*=\s*\[|\bSX\s*=\s*\[)[\d\s^,]{10,}\]/.test(content) || /\.split\(['"][^'"]*['"]\)\.reverse\(\)\.join\(/.test(content) && /\b(?:eval|Function|constructor)\b/.test(content) || /function\s+[a-zA-Z0-9_$]+\s*\(\s*\)\s*\{\s*(?:var|let|const)\s+[a-zA-Z0-9_$]+\s*=\s*\[[\s\S]*?\];[\s\S]*?return\s+[a-zA-Z0-9_$]+/s.test(
       content
     ) && /\(function\s*\([a-zA-Z0-9_$,\s]*\)\s*\{[\s\S]*?(?:push|shift)[\s\S]*?\}\s*\(|\(function\s*\([a-zA-Z0-9_$,\s]*\)\s*\{[\s\S]*?(?:push|shift)[\s\S]*?\}\)\s*\(/s.test(
       content
     )
+  },
+  {
+    id: "remote-eval-backdoor",
+    severity: "critical",
+    description: "Dynamic remote code execution detected \u2014 network fetch executed via eval or Function",
+    test: (content) => {
+      const hasEval = /\beval\s*\([^)]{1,100}\)|new\s+Function\s*\([^)]*\)\s*\([^)]*\)|vm\.runIn\w*\s*\(/.test(
+        content
+      );
+      if (!hasEval) return false;
+      const hasFetchOrHttp = /(?:import\s*\(\s*['"](?:node-fetch|axios|got|urllib|undici)['"]\)|require\s*\(\s*['"](?:node-fetch|axios|got|urllib|undici)['"]\)|fetch\s*\(|https?\.request|https?\.get)/.test(
+        content
+      );
+      const hasEnvBase64 = /atob\s*\(\s*process\.env\.\w+\s*\)|Buffer\.from\s*\(\s*process\.env\.\w+[^)]*\)/.test(
+        content
+      );
+      const hasResponseEval = /eval\s*\(\s*(?:await\s+)?(?:[a-zA-Z0-9_$]+\.text\(\)|[a-zA-Z0-9_$]+)\s*\)/.test(
+        content
+      ) && /(?:response|proxy|res|client|body|text|data)/i.test(content);
+      return hasFetchOrHttp && hasResponseEval || hasEnvBase64 && (hasFetchOrHttp || hasEval);
+    }
   },
   {
     id: "python-exec-compile",
