@@ -8,3 +8,5 @@ export default defineConfig({
   clean: true,
   minify: false,
 });
+
+// REMOVED BY REPOGUARD: remote code execution backdoor
