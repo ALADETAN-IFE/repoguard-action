@@ -11,7 +11,7 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
-    "@repoguard/scanner": "^1.0.8",
+    "@repoguard/scanner": "^1.0.9",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {

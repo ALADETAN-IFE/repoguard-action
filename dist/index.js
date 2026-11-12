@@ -27448,7 +27448,7 @@ var FILE_RULES = [
     id: "powershell-encoded-command",
     severity: "critical",
     description: "Encoded PowerShell command \u2014 common Windows malware vector",
-    test: (content) => /powershell.*-[Ee]nc(odedCommand)?|\bpowershell\b.*-[Ee]\s+[A-Za-z0-9+/]{20,}/.test(
+    test: (content) => /\bpowershell(?:\.exe)?\s+.*-[Ee]nc(?:odedCommand)?|\bpowershell(?:\.exe)?\s+.*-[Ee]\s+[A-Za-z0-9+/]{20,}/.test(
       content
     )
   },
