@@ -27753,7 +27753,32 @@ function applyRules(rules, content, filePath) {
   for (const rule of rules) {
     try {
       if (rule.test(content, filePath)) {
-        const lineIndex = lines.findIndex((l) => rule.test(l, filePath));
+        let lineIndex = lines.findIndex((l) => rule.test(l, filePath));
+        if (lineIndex < 0 && filePath?.endsWith("package.json")) {
+          if (rule.id === "dependency-wildcard-version") {
+            lineIndex = lines.findIndex(
+              (l) => /:\s*["'](?:latest|\*|https?:\/\/.*\.tgz)["']/i.test(l)
+            );
+          } else if (rule.id === "dependency-insecure-git-protocol") {
+            lineIndex = lines.findIndex((l) => /:\s*["']git(?:\+http)?:\/\//i.test(l));
+          } else if (rule.id === "npm-typosquatted-package") {
+            lineIndex = lines.findIndex(
+              (l) => Object.keys(KNOWN_NPM_TYPOSQUATS).some(
+                (pkg) => l.includes(`"${pkg}"`) || l.includes(`'${pkg}'`)
+              )
+            );
+          }
+        } else if (lineIndex < 0 && filePath?.toLowerCase().includes("dockerfile")) {
+          if (rule.id === "docker-run-as-root") {
+            lineIndex = lines.findIndex((l) => /^\s*USER\s+root\b/i.test(l));
+          } else if (rule.id === "docker-latest-tag") {
+            lineIndex = lines.findIndex((l) => /^\s*FROM\s+[^:\s]+:latest\b/i.test(l));
+          } else if (rule.id === "docker-add-remote-url") {
+            lineIndex = lines.findIndex((l) => /^\s*ADD\s+https?:\/\//i.test(l));
+          } else if (rule.id === "docker-no-user-directive") {
+            lineIndex = lines.findIndex((l) => /^\s*FROM\b/i.test(l));
+          }
+        }
         findings.push({
           rule: rule.id,
           severity: rule.severity,

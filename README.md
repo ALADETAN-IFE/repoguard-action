@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run RepoGuard
-        uses: ALADETAN-IFE/repoguard-action@1f5947a155f654749155b712564e6cb0c45e63d7 # v1
+        uses: ALADETAN-IFE/repoguard-action@8cd712d8ce7bb97f8104480be846ccb4641843c5 # v1
         with:
           minimum-severity: "medium"
           fail-on: "high"
