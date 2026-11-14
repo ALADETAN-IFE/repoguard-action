@@ -1,0 +1,28 @@
+name: Update Floating v1 Tag
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "dist/index.js"
+
+permissions:
+  contents: write
+
+jobs:
+  tag-v1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure git bot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Move and force-push v1 tag
+        run: |
+          git tag -fa v1 -m "Release v1 (${{ github.sha }})"
+          git push origin v1 --force

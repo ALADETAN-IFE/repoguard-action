@@ -46,20 +46,33 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(node -p "require('./package.json').dependencies['@repoguard/scanner']")
+          RAW_VERSION=$(node -p "require('./package.json').dependencies['@repoguard/scanner']")
+          CLEAN_VERSION=$(node -p "require('./package.json').dependencies['@repoguard/scanner'].replace(/[^0-9.]/g, '')")
+
           git add package.json package-lock.json dist/index.js
           if git diff --staged --quiet; then
-            echo "No changes detected. Scanner is already at version ${VERSION}."
+            echo "No changes detected. Scanner is already at version ${RAW_VERSION}."
             exit 0
           fi
 
-          BRANCH="chore/update-scanner-${VERSION}-${{ github.run_number }}"
+          BRANCH="chore/update-scanner-${CLEAN_VERSION}-${{ github.run_number }}"
           git checkout -b "$BRANCH"
-          git commit -m "chore(deps): update @repoguard/scanner to ${VERSION} and rebuild bundle"
+
+          # Commit 1: Updated scanner dependency and newly compiled dist/index.js
+          git commit -m "chore(deps): update @repoguard/scanner to ${RAW_VERSION} and rebuild bundle"
+
+          # Capture the action build commit SHA
+          ACTION_SHA=$(git rev-parse HEAD)
+
+          # Commit 2: Update README.md to reference the new action commit SHA
+          sed -i -E "s/ALADETAN-IFE\/repoguard-action@[a-f0-9]{40}/ALADETAN-IFE\/repoguard-action@${ACTION_SHA}/g" README.md
+          git add README.md
+          git commit -m "docs: update pinned action SHA in README to ${ACTION_SHA}"
+
           git push origin "$BRANCH"
 
           gh pr create \
-            --title "chore(deps): update @repoguard/scanner to ${VERSION}" \
-            --body "Automated Pull Request to update \`@repoguard/scanner\` to \`${VERSION}\` and rebuild \`dist/index.js\`.\n\nTriggered by GitHub Action run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --title "chore(deps): update @repoguard/scanner to ${RAW_VERSION}" \
+            --body "Automated Pull Request to update \`@repoguard/scanner\` to \`${RAW_VERSION}\`, rebuild \`dist/index.js\`, and pin README to \`${ACTION_SHA}\`.\n\n* **Action Commit SHA:** \`${ACTION_SHA}\`\n* **Triggered by Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n> 💡 Merge using **Create a merge commit** to preserve the action build commit in the git tree." \
             --base "${{ github.ref_name }}" \
             --head "$BRANCH"
