@@ -83,7 +83,7 @@ jobs:
 
           ### Action Pinned Reference
           \`\`\`yaml
-          uses: ALADETAN-IFE/repoguard-action@${ACTION_SHA} # v1
+          uses: ALADETAN-IFE/repoguard-action@${ACTION_SHA} # REPOGUARD: PIN TO COMMIT SHA # v1
           \`\`\`
 
           > [!NOTE]
