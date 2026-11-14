@@ -71,8 +71,33 @@ jobs:
 
           git push origin "$BRANCH"
 
+          cat << EOF > pr_body.md
+          ## 📦 Dependency Update: \`@repoguard/scanner\`
+
+          Automated Pull Request to update \`@repoguard/scanner\` to \`${RAW_VERSION}\` and rebuild \`dist/index.js\`.
+
+          ### Changes Included
+          - Updated \`package.json\` & \`package-lock.json\` to \`${RAW_VERSION}\`.
+          - Re-bundled \`dist/index.js\` with latest scanner engine via \`tsup\`.
+          - Updated \`README.md\` to pin the action to commit: \`${ACTION_SHA}\`.
+
+          ### Action Pinned Reference
+          \`\`\`yaml
+          uses: ALADETAN-IFE/repoguard-action@${ACTION_SHA} # v1
+          \`\`\`
+
+          > [!NOTE]
+          > Please merge using **Create a merge commit** to preserve the action build commit (\`${ACTION_SHA}\`) in the git tree.
+
+          ---
+          *Triggered by GitHub Action run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+          EOF
+
+          # Remove 10-space leading indent from here-doc
+          sed -i 's/^          //' pr_body.md
+
           gh pr create \
             --title "chore(deps): update @repoguard/scanner to ${RAW_VERSION}" \
-            --body "Automated Pull Request to update \`@repoguard/scanner\` to \`${RAW_VERSION}\`, rebuild \`dist/index.js\`, and pin README to \`${ACTION_SHA}\`.\n\n* **Action Commit SHA:** \`${ACTION_SHA}\`\n* **Triggered by Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n> 💡 Merge using **Create a merge commit** to preserve the action build commit in the git tree." \
+            --body-file pr_body.md \
             --base "${{ github.ref_name }}" \
             --head "$BRANCH"
